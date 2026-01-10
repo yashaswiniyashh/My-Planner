@@ -5,6 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>my TO-DO list | To-Do</title>
     <style>
+#install-guide {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    z-index: 1000;
+    width: 80%;
+    max-width: 300px;
+    text-align: center;
+    font-size: 14px;
+    display: none; /* Hidden by default */
+    border: 2px solid white;
+}
+
+#install-guide b {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 16px;
+}
+
+.close-guide {
+    margin-top: 10px;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
 /* Container for the random background hearts */
 #bg-heart-container {
     position: fixed;
@@ -257,8 +292,17 @@ body.pattern-hearts {
     color: white;
 }
     </style>
+<link rel="apple-touch-icon" href="icon.png">
 </head>
 <body>
+
+<div id="install-guide">
+    <b> <3 Install My TO-DO Planner</b>
+    To use this as a full app: <br>
+    <small>Tap the share icon and then <b>'Add to Home Screen'</b></small>
+    <br>
+    <button class="close-guide" onclick="this.parentElement.style.display='none'">Got it!</button>
+</div>
 
 <div class="theme-selector">
     <div class="theme-dot" style="background: #670626;" onclick="setTheme('velvet')"></div>
@@ -530,6 +574,19 @@ function setTheme(name) {
 // Add this to your "Initialize" section at the bottom of the script
 const savedPattern = localStorage.getItem('selected_pattern') || 'solid';
 setPattern(savedPattern);
+window.addEventListener('DOMContentLoaded', () => {
+    // Check if the app is already running in "standalone" mode (installed)
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
+                         || window.navigator.standalone 
+                         || document.referrer.includes('android-app://');
+
+    if (!isStandalone) {
+        // Show the guide after 2 seconds so they see the hearts first
+        setTimeout(() => {
+            document.getElementById('install-guide').style.display = 'block';
+        }, 2000);
+    }
+});
 </script>
 
 </body>
