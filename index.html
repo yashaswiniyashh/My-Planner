@@ -1,22 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-<link rel="manifest" href="manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#670626">
-
-<script>
-  // Register the Service Worker
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
-  }
-</script>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>my TO-DO list | To-Do</title>
     <style>
+/* Container for the random background hearts */
+#bg-heart-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1; /* Keeps it behind everything */
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.bg-mini-heart {
+    position: absolute;
+    user-select: none;
+    opacity: 0.60; /* Aesthetic subtle look */
+    transition: color 0.5s ease; /* Smooth color change when theme changes */
+}
+        /* These are the default 'Velvet' colors */
         :root {
             --bg-color: #fffafb; 
             --primary: #670626;  
@@ -28,15 +35,6 @@
             --shadow: 0 10px 30px rgba(103, 6, 38, 0.08);
         }
 
-        /* --- Dark Mode Variables --- */
-        body.dark-mode {
-            --bg-color: #1a1a1a;
-            --text-main: #f0f0f0;
-            --text-muted: #888;
-            --card-bg: #2d2d2d;
-            --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-
         body {
             font-family: 'optima', 'Segoe UI', sans-serif;
             background-color: var(--bg-color);
@@ -44,221 +42,298 @@
             margin: 0;
             min-height: 100vh;
             padding: 20px;
-            transition: all 0.4s ease;
+            transition: background-color 0.5s ease;
         }
 
-        /* --- Pattern Styles --- */
-        body.pattern-dots {
-            background-image: radial-gradient(var(--secondary) 1.5px, transparent 1.5px);
-            background-size: 25px 25px;
-        }
-
-        body.pattern-gingham {
-            background-image: linear-gradient(90deg, rgba(255,255,255,.1) 50%, transparent 50%),
-                              linear-gradient(rgba(255,255,255,.1) 50%, transparent 50%);
-            background-size: 50px 50px;
-            background-color: var(--secondary);
-        }
-
-        body.pattern-hearts {
-            background-image: radial-gradient(circle at 100% 150%, var(--secondary) 24%, transparent 25%),
-                              radial-gradient(circle at 0% 150%, var(--secondary) 24%, transparent 25%);
-            background-size: 40px 40px;
-        }
-
-        /* --- Selectors Styling --- */
-        .controls-container {
+        /* --- Theme Picker Styling --- */
+        .theme-selector {
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            justify-content: center;
             gap: 15px;
             margin-bottom: 40px;
-        }
-
-        .theme-selector, .pattern-selector {
-            display: flex;
-            gap: 12px;
-            align-items: center;
+            padding: 10px;
         }
 
         .theme-dot {
-            width: 22px; height: 22px;
+            width: 25px;
+            height: 25px;
             border-radius: 50%;
             cursor: pointer;
             border: 2px solid white;
-            transition: 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
         }
 
-        .pattern-btn, .dark-toggle {
-            background: var(--card-bg);
-            border: 1px solid var(--secondary);
-            padding: 6px 12px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.75rem;
-            color: var(--primary);
-            font-weight: bold;
-            transition: 0.3s;
-        }
-
-        .dark-toggle { background: var(--primary); color: white; }
+        .theme-dot:hover { transform: scale(1.2); }
 
         /* --- Layout --- */
         .planner-grid {
             display: flex;
             justify-content: center;
-            gap: 25px;
-            max-width: 1300px;
+            gap: 30px;
+            max-width: 1400px;
             margin: 0 auto;
+            align-items: flex-start;
             flex-wrap: wrap;
         }
 
-        .container { width: 100%; max-width: 380px; flex: 1; min-width: 310px; }
-
-        header {
-            border-left: 4px solid var(--primary);
-            padding-left: 15px;
-            margin-bottom: 30px;
+        .container {
+            width: 100%;
+            max-width: 400px;
+            flex: 1;
+            min-width: 320px;
         }
 
-        h1 { color: var(--primary); font-size: 1.6rem; letter-spacing: -1px; }
+        header {
+            margin-bottom: 40px;
+            text-align: left;
+            border-left: 4px solid var(--primary);
+            padding-left: 20px;
+            transition: border-color 0.3s;
+        }
+
+        h1 {
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin: 0;
+            color: var(--primary);
+            letter-spacing: -1px;
+        }
+
+        .date-display {
+            font-family: 'Crimson Text', serif;
+            font-style: italic;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
 
         .input-group {
             display: flex;
             background: var(--card-bg);
-            padding: 10px 18px;
+            padding: 12px 20px;
             border-radius: var(--radius);
             box-shadow: var(--shadow);
-            margin-bottom: 25px;
+            margin-bottom: 30px;
             border: 1px solid var(--secondary);
         }
 
         input[type="text"] {
-            border: none; outline: none; flex-grow: 1;
-            font-size: 1rem; color: var(--text-main); background: transparent;
+            border: none;
+            outline: none;
+            flex-grow: 1;
+            padding: 10px;
+            font-size: 1rem;
+            color: var(--text-main);
+            background: transparent;
         }
 
+        input::placeholder { color: var(--secondary); }
+
         button.add-btn {
-            background: var(--primary); border: none; color: white;
-            width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+            background: var(--primary);
+            border: none;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
         .section-label {
-            font-size: 0.65rem; font-weight: 800; color: var(--primary);
-            margin-bottom: 12px; display: block; letter-spacing: 2px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: block;
+            letter-spacing: 2px;
+            opacity: 0.7;
         }
 
-        ul { list-style: none; padding: 0; margin-bottom: 30px; }
+        ul { list-style: none; padding: 0; margin-bottom: 40px; }
 
         li {
-            background: var(--card-bg); margin-bottom: 10px; padding: 14px;
-            border-radius: var(--radius); display: flex; align-items: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            background: var(--card-bg);
+            margin-bottom: 12px;
+            padding: 16px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 6px rgba(103, 6, 38, 0.03);
+            transition: transform 0.2s ease;
+            animation: slideIn 0.3s ease-out;
         }
 
+        .todo-content { display: flex; align-items: center; gap: 15px; flex-grow: 1; cursor: pointer; }
+
         .checkbox {
-            width: 18px; height: 18px; border: 2px solid var(--secondary);
-            border-radius: 5px; margin-right: 12px;
+            width: 20px; height: 20px;
+            border: 2px solid var(--secondary);
+            border-radius: 6px;
+            transition: all 0.2s ease;
         }
 
         .completed .checkbox { background: var(--primary); border-color: var(--primary); }
-        .completed .todo-text { text-decoration: line-through; color: var(--text-muted); }
+        .completed .todo-text { text-decoration: line-through; color: var(--secondary); }
 
-        .delete-btn { background: none; border: none; color: var(--secondary); cursor: pointer; font-size: 0.7rem; margin-left: auto;}
-
-        .floating-heart { position: fixed; pointer-events: none; z-index: 9999; font-size: 18px; opacity: 0; }
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(0.5); opacity: 0; }
-            100% { transform: translateY(-100px) scale(1); opacity: 0; }
+        .delete-btn {
+            background: none; border: none;
+            color: var(--secondary);
+            cursor: pointer; font-size: 0.7rem; font-weight: bold;
         }
 
-        .footer { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--primary); font-weight: 600; }
+        .floating-heart {
+            position: fixed; pointer-events: none; z-index: 9999;
+            font-size: 18px; opacity: 0;
+        }
+
+       @keyframes floatUp {
+    0% { 
+        transform: translateY(0) translateX(0) scale(0.5); 
+        opacity: 0; 
+    }
+    20% { 
+        opacity: 1; 
+    }
+    100% { 
+        transform: translateY(-120px) translateX(var(--sway-end)) scale(1.5); 
+        opacity: 0; 
+    }
+}
+
+        .footer {
+            display: flex; justify-content: space-between;
+            font-size: 0.8rem; color: var(--primary);
+            padding: 20px 0; font-weight: 600;
+        }
+
+        .clear-link { cursor: pointer; text-decoration: underline; text-underline-offset: 4px; }
+
+/* Patterns */
+body.pattern-dots {
+    background-image: radial-gradient(var(--secondary) 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+body.pattern-gingham {
+    background-color: var(--bg-color);
+    background-image: linear-gradient(90deg, rgba(255,255,255,.5) 50%, transparent 50%),
+                      linear-gradient(rgba(255,255,255,.5) 50%, transparent 50%);
+    background-size: 40px 40px;
+    background-color: var(--secondary); /* The secondary color becomes the base */
+}
+
+/* FIXED MINI HEARTS BACKGROUND PATTERN */
+body.pattern-hearts {
+    background-color: var(--bg-color);
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24"><path fill="%23FFBDC5" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>');
+    background-size: 40px 40px;
+}
+
+.pattern-selector {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.pattern-selector button {
+    background: var(--card-bg);
+    border: 1px solid var(--secondary);
+    padding: 5px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    color: var(--primary);
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.pattern-selector button:hover {
+    background: var(--secondary);
+    color: white;
+}
     </style>
 </head>
 <body>
 
-<div class="controls-container">
-    <div class="theme-selector">
-        <div class="theme-dot" style="background: #670626;" onclick="setTheme('velvet')"></div>
-        <div class="theme-dot" style="background: #2b463c;" onclick="setTheme('forest')"></div>
-        <div class="theme-dot" style="background: #1a3a5f;" onclick="setTheme('ocean')"></div>
-        <div class="theme-dot" style="background: #5e3a8a;" onclick="setTheme('lavender')"></div>
-        <button class="dark-toggle" onclick="toggleDarkMode()">Dark Mode</button>
-    </div>
-
-    <div class="pattern-selector">
-        <button class="pattern-btn" onclick="setPattern('solid')">Solid</button>
-        <button class="pattern-btn" onclick="setPattern('dots')">Dots</button>
-        <button class="pattern-btn" onclick="setPattern('gingham')">Gingham</button>
-        <button class="pattern-btn" onclick="setPattern('hearts')">Hearts</button>
-    </div>
+<div class="theme-selector">
+    <div class="theme-dot" style="background: #670626;" onclick="setTheme('velvet')"></div>
+    <div class="theme-dot" style="background: #2b463c;" onclick="setTheme('forest')"></div>
+    <div class="theme-dot" style="background: #1a3a5f;" onclick="setTheme('ocean')"></div>
+    <div class="theme-dot" style="background: #5e3a8a;" onclick="setTheme('lavender')"></div>
+    <div class="theme-dot" style="background: #8a5a3a;" onclick="setTheme('espresso')"></div>
+</div>
+<div class="pattern-selector">
+    <button onclick="setPattern('solid')">Solid</button>
+    <button onclick="setPattern('dots')">Dots</button>
+    <button onclick="setPattern('gingham')">Gingham</button>
+    <button onclick="setPattern('hearts')">Mini Hearts</button>
 </div>
 
 <div class="planner-grid">
+    
     <div class="container" id="panel-daily">
         <header><div class="date-display date-box"></div><h1>everyday list<3</h1></header>
         <div class="input-group">
-            <input type="text" class="todo-input" placeholder="To-do today?" onkeydown="playKeyboardSound(event)">
+            <input type="text" class="todo-input" placeholder="What's on your mind?" onkeydown="playKeyboardSound(event)">
             <button class="add-btn" onclick="addTodo('daily')">+</button>
         </div>
-        <span class="section-label">CURRENT</span><ul class="active-list"></ul>
-        <span class="section-label">DONE</span><ul class="completed-list"></ul>
-        <div class="footer"><span class="items-left">0 left</span><span onclick="clearCompleted('daily')" style="cursor:pointer">Clear</span></div>
+        <span class="section-label">CURRENT TASKS</span>
+        <ul class="active-list"></ul>
+        <span class="section-label">COMPLETED</span>
+        <ul class="completed-list"></ul>
+        <div class="footer"><span class="items-left">0 items</span><span class="clear-link" onclick="clearCompleted('daily')">Clear All</span></div>
     </div>
 
     <div class="container" id="panel-weekly">
         <header><div class="date-display date-box"></div><h1>weekly planner<3</h1></header>
         <div class="input-group">
-            <input type="text" class="todo-input" placeholder="Weekly goals?" onkeydown="playKeyboardSound(event)">
+            <input type="text" class="todo-input" placeholder="Plans for this week?" onkeydown="playKeyboardSound(event)">
             <button class="add-btn" onclick="addTodo('weekly')">+</button>
         </div>
-        <span class="section-label">THIS WEEK</span><ul class="active-list"></ul>
-        <span class="section-label">DONE</span><ul class="completed-list"></ul>
-        <div class="footer"><span class="items-left">0 left</span><span onclick="clearCompleted('weekly')" style="cursor:pointer">Clear</span></div>
+        <span class="section-label">THIS WEEK</span>
+        <ul class="active-list"></ul>
+        <span class="section-label">FINISHED</span>
+        <ul class="completed-list"></ul>
+        <div class="footer"><span class="items-left">0 items</span><span class="clear-link" onclick="clearCompleted('weekly')">Clear All</span></div>
     </div>
 
     <div class="container" id="panel-monthly">
         <header><div class="date-display date-box"></div><h1>monthly planner<3</h1></header>
         <div class="input-group">
-            <input type="text" class="todo-input" placeholder="Monthly plans?" onkeydown="playKeyboardSound(event)">
+            <input type="text" class="todo-input" placeholder="Plans for the month?" onkeydown="playKeyboardSound(event)">
             <button class="add-btn" onclick="addTodo('monthly')">+</button>
         </div>
-        <span class="section-label">THIS MONTH</span><ul class="active-list"></ul>
-        <span class="section-label">DONE</span><ul class="completed-list"></ul>
-        <div class="footer"><span class="items-left">0 left</span><span onclick="clearCompleted('monthly')" style="cursor:pointer">Clear</span></div>
+        <span class="section-label">THIS MONTH</span>
+        <ul class="active-list"></ul>
+        <span class="section-label">FINISHED</span>
+        <ul class="completed-list"></ul>
+        <div class="footer"><span class="items-left">0 items</span><span class="clear-link" onclick="clearCompleted('monthly')">Clear All</span></div>
     </div>
+
 </div>
 
 <script>
+    // --- Theme Data ---
     const themes = {
         velvet: { primary: '#670626', secondary: '#FFBDC5', bg: '#fffafb', text: '#330312' },
         forest: { primary: '#2b463c', secondary: '#a8c69f', bg: '#f4f7f4', text: '#1b2e26' },
         ocean: { primary: '#1a3a5f', secondary: '#9fbcdb', bg: '#f0f5f9', text: '#0d1f33' },
-        lavender: { primary: '#5e3a8a', secondary: '#d1b3e0', bg: '#f8f4ff', text: '#2d1b42' }
+        lavender: { primary: '#5e3a8a', secondary: '#d1b3e0', bg: '#f8f4ff', text: '#2d1b42' },
+        espresso: { primary: '#5d4037', secondary: '#d7ccc8', bg: '#faf9f8', text: '#3e2723' }
     };
 
-    function setTheme(name) {
-        const t = themes[name];
+    function setTheme(themeName) {
+        const t = themes[themeName];
         document.documentElement.style.setProperty('--primary', t.primary);
         document.documentElement.style.setProperty('--secondary', t.secondary);
-        if(!document.body.classList.contains('dark-mode')) {
-            document.documentElement.style.setProperty('--bg-color', t.bg);
-            document.documentElement.style.setProperty('--text-main', t.text);
-        }
-        localStorage.setItem('theme', name);
-    }
-
-    function setPattern(p) {
-        document.body.classList.remove('pattern-dots', 'pattern-gingham', 'pattern-hearts');
-        if(p !== 'solid') document.body.classList.add('pattern-' + p);
-        localStorage.setItem('pattern', p);
-    }
-
-    function toggleDarkMode() {
-        document.body.classList.toggle('dark-mode');
-        const isDark = document.body.classList.contains('dark-mode');
-        localStorage.setItem('darkMode', isDark);
-        setTheme(localStorage.getItem('theme') || 'velvet');
+        document.documentElement.style.setProperty('--bg-color', t.bg);
+        document.documentElement.style.setProperty('--text-main', t.text);
+        localStorage.setItem('selected_theme', themeName);
     }
 
     // --- Audio ---
@@ -269,7 +344,7 @@
         const gain = audioCtx.createGain();
         const isSpace = e.code === 'Space';
         osc.type = isSpace ? 'triangle' : 'square';
-        osc.frequency.setValueAtTime(isSpace ? 120 : 450 + Math.random()*50, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(isSpace ? 120 : 400 + Math.random()*100, audioCtx.currentTime);
         gain.gain.setValueAtTime(isSpace ? 0.08 : 0.04, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
         osc.connect(gain); gain.connect(audioCtx.destination);
@@ -281,14 +356,16 @@
         if (audioCtx.state === 'suspended') audioCtx.resume();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        osc.type = 'sine'; osc.frequency.setValueAtTime(900, audioCtx.currentTime);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
         gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
         osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
     }
 
-    // --- Core Data Logic ---
-    let allData = JSON.parse(localStorage.getItem('planners')) || { monthly: [], weekly: [], daily: [] };
+    // --- Core Logic ---
+    let allData = JSON.parse(localStorage.getItem('velvet_planners')) || { monthly: [], weekly: [], daily: [] };
 
     function updateDisplay(type) {
         const panel = document.getElementById(`panel-${type}`);
@@ -300,17 +377,12 @@
         allData[type].forEach((todo, index) => {
             const li = document.createElement('li');
             if (todo.done) li.classList.add('completed');
-            li.innerHTML = `
-                <div style="display:flex; align-items:center; flex-grow:1; cursor:pointer" onclick="toggleTodo(event, '${type}', ${index})">
-                    <div class="checkbox"></div>
-                    <span class="todo-text">${todo.text}</span>
-                </div>
-                <button class="delete-btn" onclick="deleteTodo('${type}', ${index})">DELETE</button>`;
+            li.innerHTML = `<div class="todo-content" onclick="toggleTodo(event, '${type}', ${index})"><div class="checkbox"></div><span class="todo-text">${todo.text}</span></div><button class="delete-btn" onclick="deleteTodo('${type}', ${index})">DELETE</button>`;
             if (todo.done) completedList.appendChild(li);
             else { activeList.appendChild(li); activeCount++; }
         });
         panel.querySelector('.items-left').innerText = `${activeCount} left`;
-        localStorage.setItem('planners', JSON.stringify(allData));
+        localStorage.setItem('velvet_planners', JSON.stringify(allData));
     }
 
     function addTodo(type) {
@@ -321,52 +393,143 @@
         }
     }
 
-    function toggleTodo(e, type, index) {
-        if (!allData[type][index].done) { 
-            playPopSound(); 
-            createHearts(e); // Hearts trigger here
-        }
-        allData[type][index].done = !allData[type][index].done;
-        updateDisplay(type);
+   function toggleTodo(e, type, index) {
+    // Only play sound and show hearts if we are CHECKING the box (not unchecking)
+    if (!allData[type][index].done) { 
+        playPopSound(); // Restored to the loud version
+        createExplosionHearts(e); // Restored the pop-up explosion
     }
+    allData[type][index].done = !allData[type][index].done;
+    updateDisplay(type);
+}
 
-    function deleteTodo(type, index) { allData[type].splice(index, 1); updateDisplay(type); }
-    function clearCompleted(type) { allData[type] = allData[type].filter(t => !t.done); updateDisplay(type); }
+function playPopSound() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    osc.type = 'sine'; 
+    osc.frequency.setValueAtTime(800, audioCtx.currentTime); 
+    osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1); 
+    
+    // VOLUME BOOST: Set to 0.4 for a strong, clear chime
+    gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+    
+    osc.connect(gain); 
+    gain.connect(audioCtx.destination);
+    
+    osc.start(); 
+    osc.stop(audioCtx.currentTime + 0.3);
+}
 
-    // --- The Fixed Heart Function ---
-    function createHearts(e) {
-        const colors = [
-            getComputedStyle(document.documentElement).getPropertyValue('--primary'),
-            getComputedStyle(document.documentElement).getPropertyValue('--secondary')
-        ];
+// This is the "Explosion" effect for the checkbox
+function createExplosionHearts(e) {
+    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+    
+    // We create 8 hearts for a bigger burst
+    for (let i = 0; i < 8; i++) {
+        const h = document.createElement('div');
+        h.innerHTML = '❤';
+        h.className = 'floating-heart'; // Uses your original CSS animation
         
-        for (let i = 0; i < 6; i++) {
-            const h = document.createElement('div');
-            h.innerHTML = '❤';
-            h.className = 'floating-heart';
-            h.style.left = e.clientX + (Math.random() - 0.5) * 20 + 'px';
-            h.style.top = e.clientY + (Math.random() - 0.5) * 20 + 'px';
-            h.style.color = colors[Math.floor(Math.random() * colors.length)];
-            
-            // Re-adding the sway variables
-            const sway = (Math.random() - 0.5) * 60 + 'px';
-            h.style.setProperty('--sway-end', sway);
-            
-            // Correct animation string
-            h.style.animation = `floatUp ${0.8 + Math.random()}s ease-out forwards`;
-            
-            document.body.appendChild(h);
-            setTimeout(() => h.remove(), 1200);
-        }
+        // Start exactly where you clicked
+        h.style.left = e.clientX + 'px';
+        h.style.top = e.clientY + 'px';
+        h.style.color = primaryColor;
+        
+        // Random spread
+        const sway = (Math.random() - 0.5) * 120 + 'px';
+        h.style.setProperty('--sway-end', sway);
+        
+        // Fast, energetic burst animation
+        h.style.animation = `floatUp ${0.5 + Math.random() * 0.5}s ease-out forwards`;
+        
+        document.body.appendChild(h);
+        setTimeout(() => h.remove(), 1000);
+    }
+}
+
+    // Initialize
+    const savedTheme = localStorage.getItem('selected_theme') || 'velvet';
+    setTheme(savedTheme);
+    const options = { weekday: 'long', month: 'long', day: 'numeric' };
+    document.querySelectorAll('.date-box').forEach(el => el.innerText = new Date().toLocaleDateString(undefined, options));
+    ['monthly', 'weekly', 'daily'].forEach(type => updateDisplay(type));
+
+function setPattern(p) {
+    document.body.classList.remove('pattern-dots', 'pattern-gingham', 'pattern-hearts');
+    
+    // Clear any existing random hearts first
+    const container = document.getElementById('bg-heart-container');
+    if (container) container.innerHTML = '';
+
+    if (p === 'hearts') {
+        generateRandomHearts();
+    } else if (p !== 'solid') {
+        document.body.classList.add('pattern-' + p);
+    }
+    
+    localStorage.setItem('pattern', p);
+}
+
+function generateRandomHearts() {
+    // Create container if it doesn't exist
+    let container = document.getElementById('bg-heart-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'bg-heart-container';
+        document.body.appendChild(container);
     }
 
-    // Init everything
-    if(localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
-    setTheme(localStorage.getItem('theme') || 'velvet');
-    setPattern(localStorage.getItem('pattern') || 'solid');
-    const dOpt = { weekday: 'long', month: 'long', day: 'numeric' };
-    document.querySelectorAll('.date-box').forEach(el => el.innerText = new Date().toLocaleDateString(undefined, dOpt));
-    ['monthly', 'weekly', 'daily'].forEach(type => updateDisplay(type));
+    const heartCount = 40; // Adjust for more or fewer hearts
+    const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--secondary').trim();
+
+    for (let i = 0; i < heartCount; i++) {
+        const heart = document.createElement('div');
+        heart.innerHTML = '❤';
+        heart.className = 'bg-mini-heart';
+        
+        // Randomize Size (between 10px and 30px)
+        const size = Math.floor(Math.random() * 20) + 10;
+        heart.style.fontSize = size + 'px';
+        
+        // Randomize Position
+        heart.style.left = Math.random() * 100 + 'vw';
+        heart.style.top = Math.random() * 100 + 'vh';
+        
+        // Randomize Rotation for a funky look
+        heart.style.transform = `rotate(${Math.random() * 360}deg)`;
+        
+        // Set Color based on current theme
+        heart.style.color = 'var(--secondary)';
+        
+        container.appendChild(heart);
+    }
+}
+
+// Update the setTheme function so background hearts change color too
+function setTheme(name) {
+    const t = themes[name];
+    document.documentElement.style.setProperty('--primary', t.primary);
+    document.documentElement.style.setProperty('--secondary', t.secondary);
+    
+    if(!document.body.classList.contains('dark-mode')) {
+        document.documentElement.style.setProperty('--bg-color', t.bg);
+        document.documentElement.style.setProperty('--text-main', t.text);
+    }
+    
+    // This line ensures the background hearts update their color instantly
+    document.querySelectorAll('.bg-mini-heart').forEach(h => {
+        h.style.color = 'var(--secondary)';
+    });
+
+    localStorage.setItem('theme', name);
+}
+
+// Add this to your "Initialize" section at the bottom of the script
+const savedPattern = localStorage.getItem('selected_pattern') || 'solid';
+setPattern(savedPattern);
 </script>
 
 </body>
