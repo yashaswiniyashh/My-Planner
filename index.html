@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#670626">
+
+<script>
+  // Register the Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>my TO-DO list | To-Do</title>
+    <style>
+        :root {
+            --bg-color: #fffafb; 
+            --primary: #670626;  
+            --secondary: #FFBDC5; 
+            --text-main: #330312;
+            --text-muted: #a37c86;
+            --card-bg: #ffffff;
+            --radius: 16px;
+            --shadow: 0 10px 30px rgba(103, 6, 38, 0.08);
+        }
+
+        /* --- Dark Mode Variables --- */
+        body.dark-mode {
+            --bg-color: #1a1a1a;
+            --text-main: #f0f0f0;
+            --text-muted: #888;
+            --card-bg: #2d2d2d;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            font-family: 'optima', 'Segoe UI', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            min-height: 100vh;
+            padding: 20px;
+            transition: all 0.4s ease;
+        }
+
+        /* --- Pattern Styles --- */
+        body.pattern-dots {
+            background-image: radial-gradient(var(--secondary) 1.5px, transparent 1.5px);
+            background-size: 25px 25px;
+        }
+
+        body.pattern-gingham {
+            background-image: linear-gradient(90deg, rgba(255,255,255,.1) 50%, transparent 50%),
+                              linear-gradient(rgba(255,255,255,.1) 50%, transparent 50%);
+            background-size: 50px 50px;
+            background-color: var(--secondary);
+        }
+
+        body.pattern-hearts {
+            background-image: radial-gradient(circle at 100% 150%, var(--secondary) 24%, transparent 25%),
+                              radial-gradient(circle at 0% 150%, var(--secondary) 24%, transparent 25%);
+            background-size: 40px 40px;
+        }
+
+        /* --- Selectors Styling --- */
+        .controls-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .theme-selector, .pattern-selector {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .theme-dot {
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+            transition: 0.2s;
+        }
+
+        .pattern-btn, .dark-toggle {
+            background: var(--card-bg);
+            border: 1px solid var(--secondary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            color: var(--primary);
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .dark-toggle { background: var(--primary); color: white; }
+
+        /* --- Layout --- */
+        .planner-grid {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            max-width: 1300px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+        }
+
+        .container { width: 100%; max-width: 380px; flex: 1; min-width: 310px; }
+
+        header {
+            border-left: 4px solid var(--primary);
+            padding-left: 15px;
+            margin-bottom: 30px;
+        }
+
+        h1 { color: var(--primary); font-size: 1.6rem; letter-spacing: -1px; }
+
+        .input-group {
+            display: flex;
+            background: var(--card-bg);
+            padding: 10px 18px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 25px;
+            border: 1px solid var(--secondary);
+        }
+
+        input[type="text"] {
+            border: none; outline: none; flex-grow: 1;
+            font-size: 1rem; color: var(--text-main); background: transparent;
+        }
+
+        button.add-btn {
+            background: var(--primary); border: none; color: white;
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+        }
+
+        .section-label {
+            font-size: 0.65rem; font-weight: 800; color: var(--primary);
+            margin-bottom: 12px; display: block; letter-spacing: 2px;
+        }
+
+        ul { list-style: none; padding: 0; margin-bottom: 30px; }
+
+        li {
+            background: var(--card-bg); margin-bottom: 10px; padding: 14px;
+            border-radius: var(--radius); display: flex; align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+
+        .checkbox {
+            width: 18px; height: 18px; border: 2px solid var(--secondary);
+            border-radius: 5px; margin-right: 12px;
+        }
+
+        .completed .checkbox { background: var(--primary); border-color: var(--primary); }
+        .completed .todo-text { text-decoration: line-through; color: var(--text-muted); }
+
+        .delete-btn { background: none; border: none; color: var(--secondary); cursor: pointer; font-size: 0.7rem; margin-left: auto;}
+
+        .floating-heart { position: fixed; pointer-events: none; z-index: 9999; font-size: 18px; opacity: 0; }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(0.5); opacity: 0; }
+            100% { transform: translateY(-100px) scale(1); opacity: 0; }
+        }
+
+        .footer { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--primary); font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<div class="controls-container">
+    <div class="theme-selector">
+        <div class="theme-dot" style="background: #670626;" onclick="setTheme('velvet')"></div>
+        <div class="theme-dot" style="background: #2b463c;" onclick="setTheme('forest')"></div>
+        <div class="theme-dot" style="background: #1a3a5f;" onclick="setTheme('ocean')"></div>
+        <div class="theme-dot" style="background: #5e3a8a;" onclick="setTheme('lavender')"></div>
+        <button class="dark-toggle" onclick="toggleDarkMode()">Dark Mode</button>
+    </div>
+
+    <div class="pattern-selector">
+        <button class="pattern-btn" onclick="setPattern('solid')">Solid</button>
+        <button class="pattern-btn" onclick="setPattern('dots')">Dots</button>
+        <button class="pattern-btn" onclick="setPattern('gingham')">Gingham</button>
+        <button class="pattern-btn" onclick="setPattern('hearts')">Hearts</button>
+    </div>
+</div>
+
+<div class="planner-grid">
+    <div class="container" id="panel-daily">
+        <header><div class="date-display date-box"></div><h1>everyday list<3</h1></header>
+        <div class="input-group">
+            <input type="text" class="todo-input" placeholder="To-do today?" onkeydown="playKeyboardSound(event)">
+            <button class="add-btn" onclick="addTodo('daily')">+</button>
+        </div>
+        <span class="section-label">CURRENT</span><ul class="active-list"></ul>
+        <span class="section-label">DONE</span><ul class="completed-list"></ul>
+        <div class="footer"><span class="items-left">0 left</span><span onclick="clearCompleted('daily')" style="cursor:pointer">Clear</span></div>
+    </div>
+
+    <div class="container" id="panel-weekly">
+        <header><div class="date-display date-box"></div><h1>weekly planner<3</h1></header>
+        <div class="input-group">
+            <input type="text" class="todo-input" placeholder="Weekly goals?" onkeydown="playKeyboardSound(event)">
+            <button class="add-btn" onclick="addTodo('weekly')">+</button>
+        </div>
+        <span class="section-label">THIS WEEK</span><ul class="active-list"></ul>
+        <span class="section-label">DONE</span><ul class="completed-list"></ul>
+        <div class="footer"><span class="items-left">0 left</span><span onclick="clearCompleted('weekly')" style="cursor:pointer">Clear</span></div>
+    </div>
+
+    <div class="container" id="panel-monthly">
+        <header><div class="date-display date-box"></div><h1>monthly planner<3</h1></header>
+        <div class="input-group">
+            <input type="text" class="todo-input" placeholder="Monthly plans?" onkeydown="playKeyboardSound(event)">
+            <button class="add-btn" onclick="addTodo('monthly')">+</button>
+        </div>
+        <span class="section-label">THIS MONTH</span><ul class="active-list"></ul>
+        <span class="section-label">DONE</span><ul class="completed-list"></ul>
+        <div class="footer"><span class="items-left">0 left</span><span onclick="clearCompleted('monthly')" style="cursor:pointer">Clear</span></div>
+    </div>
+</div>
+
+<script>
+    const themes = {
+        velvet: { primary: '#670626', secondary: '#FFBDC5', bg: '#fffafb', text: '#330312' },
+        forest: { primary: '#2b463c', secondary: '#a8c69f', bg: '#f4f7f4', text: '#1b2e26' },
+        ocean: { primary: '#1a3a5f', secondary: '#9fbcdb', bg: '#f0f5f9', text: '#0d1f33' },
+        lavender: { primary: '#5e3a8a', secondary: '#d1b3e0', bg: '#f8f4ff', text: '#2d1b42' }
+    };
+
+    function setTheme(name) {
+        const t = themes[name];
+        document.documentElement.style.setProperty('--primary', t.primary);
+        document.documentElement.style.setProperty('--secondary', t.secondary);
+        if(!document.body.classList.contains('dark-mode')) {
+            document.documentElement.style.setProperty('--bg-color', t.bg);
+            document.documentElement.style.setProperty('--text-main', t.text);
+        }
+        localStorage.setItem('theme', name);
+    }
+
+    function setPattern(p) {
+        document.body.classList.remove('pattern-dots', 'pattern-gingham', 'pattern-hearts');
+        if(p !== 'solid') document.body.classList.add('pattern-' + p);
+        localStorage.setItem('pattern', p);
+    }
+
+    function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+        const isDark = document.body.classList.contains('dark-mode');
+        localStorage.setItem('darkMode', isDark);
+        setTheme(localStorage.getItem('theme') || 'velvet');
+    }
+
+    // --- Audio ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playKeyboardSound(e) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const isSpace = e.code === 'Space';
+        osc.type = isSpace ? 'triangle' : 'square';
+        osc.frequency.setValueAtTime(isSpace ? 120 : 450 + Math.random()*50, audioCtx.currentTime);
+        gain.gain.setValueAtTime(isSpace ? 0.08 : 0.04, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+        if (e.key === 'Enter') addTodo(e.target.closest('.container').id.replace('panel-', ''));
+    }
+
+    function playPopSound() {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine'; osc.frequency.setValueAtTime(900, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+    }
+
+    // --- Core Data Logic ---
+    let allData = JSON.parse(localStorage.getItem('planners')) || { monthly: [], weekly: [], daily: [] };
+
+    function updateDisplay(type) {
+        const panel = document.getElementById(`panel-${type}`);
+        const activeList = panel.querySelector('.active-list');
+        const completedList = panel.querySelector('.completed-list');
+        activeList.innerHTML = ''; completedList.innerHTML = '';
+        let activeCount = 0;
+
+        allData[type].forEach((todo, index) => {
+            const li = document.createElement('li');
+            if (todo.done) li.classList.add('completed');
+            li.innerHTML = `
+                <div style="display:flex; align-items:center; flex-grow:1; cursor:pointer" onclick="toggleTodo(event, '${type}', ${index})">
+                    <div class="checkbox"></div>
+                    <span class="todo-text">${todo.text}</span>
+                </div>
+                <button class="delete-btn" onclick="deleteTodo('${type}', ${index})">DELETE</button>`;
+            if (todo.done) completedList.appendChild(li);
+            else { activeList.appendChild(li); activeCount++; }
+        });
+        panel.querySelector('.items-left').innerText = `${activeCount} left`;
+        localStorage.setItem('planners', JSON.stringify(allData));
+    }
+
+    function addTodo(type) {
+        const input = document.querySelector(`#panel-${type} .todo-input`);
+        if (input.value.trim()) {
+            allData[type].push({ text: input.value.trim(), done: false });
+            input.value = ''; updateDisplay(type);
+        }
+    }
+
+    function toggleTodo(e, type, index) {
+        if (!allData[type][index].done) { 
+            playPopSound(); 
+            createHearts(e); // Hearts trigger here
+        }
+        allData[type][index].done = !allData[type][index].done;
+        updateDisplay(type);
+    }
+
+    function deleteTodo(type, index) { allData[type].splice(index, 1); updateDisplay(type); }
+    function clearCompleted(type) { allData[type] = allData[type].filter(t => !t.done); updateDisplay(type); }
+
+    // --- The Fixed Heart Function ---
+    function createHearts(e) {
+        const colors = [
+            getComputedStyle(document.documentElement).getPropertyValue('--primary'),
+            getComputedStyle(document.documentElement).getPropertyValue('--secondary')
+        ];
+        
+        for (let i = 0; i < 6; i++) {
+            const h = document.createElement('div');
+            h.innerHTML = '❤';
+            h.className = 'floating-heart';
+            h.style.left = e.clientX + (Math.random() - 0.5) * 20 + 'px';
+            h.style.top = e.clientY + (Math.random() - 0.5) * 20 + 'px';
+            h.style.color = colors[Math.floor(Math.random() * colors.length)];
+            
+            // Re-adding the sway variables
+            const sway = (Math.random() - 0.5) * 60 + 'px';
+            h.style.setProperty('--sway-end', sway);
+            
+            // Correct animation string
+            h.style.animation = `floatUp ${0.8 + Math.random()}s ease-out forwards`;
+            
+            document.body.appendChild(h);
+            setTimeout(() => h.remove(), 1200);
+        }
+    }
+
+    // Init everything
+    if(localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
+    setTheme(localStorage.getItem('theme') || 'velvet');
+    setPattern(localStorage.getItem('pattern') || 'solid');
+    const dOpt = { weekday: 'long', month: 'long', day: 'numeric' };
+    document.querySelectorAll('.date-box').forEach(el => el.innerText = new Date().toLocaleDateString(undefined, dOpt));
+    ['monthly', 'weekly', 'daily'].forEach(type => updateDisplay(type));
+</script>
+
+</body>
+</html>

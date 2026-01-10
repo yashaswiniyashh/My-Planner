@@ -1,0 +1,15 @@
+{
+  "name": "My TO-DO Planner",
+  "short_name": "My Planner",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#fffafb",
+  "theme_color": "#670626",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
