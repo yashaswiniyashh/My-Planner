@@ -1,65 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>my TO-DO list | To-Do</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
     <style>
-#install-guide {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--primary);
-    color: white;
-    padding: 15px 20px;
-    border-radius: 20px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    z-index: 1000;
-    width: 80%;
-    max-width: 300px;
-    text-align: center;
-    font-size: 14px;
-    display: none; /* Hidden by default */
-    border: 2px solid white;
-}
+        /* Container for the random background hearts */
+        #bg-heart-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+            overflow: hidden;
+        }
 
-#install-guide b {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 16px;
-}
+        .bg-mini-heart {
+            position: absolute;
+            user-select: none;
+            opacity: 0.60;
+            transition: color 0.5s ease;
+        }
 
-.close-guide {
-    margin-top: 10px;
-    background: rgba(255,255,255,0.2);
-    border: none;
-    color: white;
-    padding: 5px 10px;
-    border-radius: 10px;
-    cursor: pointer;
-}
+        #install-guide {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 1000;
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+            font-size: 14px;
+            display: none;
+            border: 2px solid white;
+        }
 
-/* Container for the random background hearts */
-#bg-heart-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: -1; /* Keeps it behind everything */
-    pointer-events: none;
-    overflow: hidden;
-}
+        .close-guide {
+            margin-top: 10px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
 
-.bg-mini-heart {
-    position: absolute;
-    user-select: none;
-    opacity: 0.60; /* Aesthetic subtle look */
-    transition: color 0.5s ease; /* Smooth color change when theme changes */
-}
-        /* These are the default 'Velvet' colors */
         :root {
             --bg-color: #fffafb; 
             --primary: #670626;  
@@ -81,227 +75,56 @@
             transition: background-color 0.5s ease;
         }
 
-        /* --- Theme Picker Styling --- */
-        .theme-selector {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 40px;
-            padding: 10px;
-        }
-
-        .theme-dot {
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 2px solid white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-        }
-
+        .theme-selector { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; padding: 10px; }
+        .theme-dot { width: 25px; height: 25px; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: transform 0.2s; }
         .theme-dot:hover { transform: scale(1.2); }
 
-        /* --- Layout --- */
-        .planner-grid {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            max-width: 1400px;
-            margin: 0 auto;
-            align-items: flex-start;
-            flex-wrap: wrap;
-        }
+        .pattern-selector { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
+        .pattern-selector button { background: var(--card-bg); border: 1px solid var(--secondary); padding: 5px 15px; border-radius: 20px; cursor: pointer; font-size: 0.7rem; color: var(--primary); font-weight: bold; transition: 0.3s; }
 
-        .container {
-            width: 100%;
-            max-width: 400px;
-            flex: 1;
-            min-width: 320px;
-        }
+        .planner-grid { display: flex; justify-content: center; gap: 30px; max-width: 1400px; margin: 0 auto; flex-wrap: wrap; }
+        .container { width: 100%; max-width: 400px; flex: 1; min-width: 320px; }
 
-        header {
-            margin-bottom: 40px;
-            text-align: left;
-            border-left: 4px solid var(--primary);
-            padding-left: 20px;
-            transition: border-color 0.3s;
-        }
+        header { margin-bottom: 40px; border-left: 4px solid var(--primary); padding-left: 20px; }
+        h1 { font-weight: 700; font-size: 1.8rem; margin: 0; color: var(--primary); letter-spacing: -1px; }
+        .date-display { font-family: 'Crimson Text', serif; font-style: italic; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 5px; }
 
-        h1 {
-            font-weight: 700;
-            font-size: 1.8rem;
-            margin: 0;
-            color: var(--primary);
-            letter-spacing: -1px;
-        }
+        .input-group { display: flex; background: var(--card-bg); padding: 12px 20px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 30px; border: 1px solid var(--secondary); }
+        input[type="text"] { border: none; outline: none; flex-grow: 1; padding: 10px; font-size: 1rem; color: var(--text-main); background: transparent; }
+        .add-btn { background: var(--primary); border: none; color: white; width: 35px; height: 35px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; }
 
-        .date-display {
-            font-family: 'Crimson Text', serif;
-            font-style: italic;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-bottom: 5px;
-        }
-
-        .input-group {
-            display: flex;
-            background: var(--card-bg);
-            padding: 12px 20px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            margin-bottom: 30px;
-            border: 1px solid var(--secondary);
-        }
-
-        input[type="text"] {
-            border: none;
-            outline: none;
-            flex-grow: 1;
-            padding: 10px;
-            font-size: 1rem;
-            color: var(--text-main);
-            background: transparent;
-        }
-
-        input::placeholder { color: var(--secondary); }
-
-        button.add-btn {
-            background: var(--primary);
-            border: none;
-            color: white;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .section-label {
-            font-size: 0.7rem;
-            font-weight: 800;
-            color: var(--primary);
-            margin-bottom: 15px;
-            display: block;
-            letter-spacing: 2px;
-            opacity: 0.7;
-        }
-
+        .section-label { font-size: 0.7rem; font-weight: 800; color: var(--primary); margin-bottom: 15px; display: block; letter-spacing: 2px; opacity: 0.7; }
         ul { list-style: none; padding: 0; margin-bottom: 40px; }
-
-        li {
-            background: var(--card-bg);
-            margin-bottom: 12px;
-            padding: 16px;
-            border-radius: var(--radius);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 4px 6px rgba(103, 6, 38, 0.03);
-            transition: transform 0.2s ease;
-            animation: slideIn 0.3s ease-out;
-        }
+        li { background: var(--card-bg); margin-bottom: 12px; padding: 16px; border-radius: var(--radius); display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 6px rgba(103, 6, 38, 0.03); animation: slideIn 0.3s ease-out; }
 
         .todo-content { display: flex; align-items: center; gap: 15px; flex-grow: 1; cursor: pointer; }
-
-        .checkbox {
-            width: 20px; height: 20px;
-            border: 2px solid var(--secondary);
-            border-radius: 6px;
-            transition: all 0.2s ease;
-        }
-
+        .checkbox { width: 20px; height: 20px; border: 2px solid var(--secondary); border-radius: 6px; }
         .completed .checkbox { background: var(--primary); border-color: var(--primary); }
         .completed .todo-text { text-decoration: line-through; color: var(--secondary); }
+        
+        .delete-btn { background: none; border: none; color: var(--secondary); cursor: pointer; font-size: 0.7rem; font-weight: bold; }
+        .footer { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--primary); padding: 20px 0; font-weight: 600; }
+        .clear-link { cursor: pointer; text-decoration: underline; }
 
-        .delete-btn {
-            background: none; border: none;
-            color: var(--secondary);
-            cursor: pointer; font-size: 0.7rem; font-weight: bold;
+        .floating-heart { position: fixed; pointer-events: none; z-index: 9999; font-size: 18px; opacity: 0; }
+        @keyframes floatUp {
+            0% { transform: translateY(0) translateX(0) scale(0.5); opacity: 0; }
+            20% { opacity: 1; }
+            100% { transform: translateY(-120px) translateX(var(--sway-end)) scale(1.5); opacity: 0; }
         }
 
-        .floating-heart {
-            position: fixed; pointer-events: none; z-index: 9999;
-            font-size: 18px; opacity: 0;
-        }
-
-       @keyframes floatUp {
-    0% { 
-        transform: translateY(0) translateX(0) scale(0.5); 
-        opacity: 0; 
-    }
-    20% { 
-        opacity: 1; 
-    }
-    100% { 
-        transform: translateY(-120px) translateX(var(--sway-end)) scale(1.5); 
-        opacity: 0; 
-    }
-}
-
-        .footer {
-            display: flex; justify-content: space-between;
-            font-size: 0.8rem; color: var(--primary);
-            padding: 20px 0; font-weight: 600;
-        }
-
-        .clear-link { cursor: pointer; text-decoration: underline; text-underline-offset: 4px; }
-
-/* Patterns */
-body.pattern-dots {
-    background-image: radial-gradient(var(--secondary) 1px, transparent 1px);
-    background-size: 20px 20px;
-}
-
-body.pattern-gingham {
-    background-color: var(--bg-color);
-    background-image: linear-gradient(90deg, rgba(255,255,255,.5) 50%, transparent 50%),
-                      linear-gradient(rgba(255,255,255,.5) 50%, transparent 50%);
-    background-size: 40px 40px;
-    background-color: var(--secondary); /* The secondary color becomes the base */
-}
-
-/* FIXED MINI HEARTS BACKGROUND PATTERN */
-body.pattern-hearts {
-    background-color: var(--bg-color);
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24"><path fill="%23FFBDC5" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>');
-    background-size: 40px 40px;
-}
-
-.pattern-selector {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.pattern-selector button {
-    background: var(--card-bg);
-    border: 1px solid var(--secondary);
-    padding: 5px 15px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 0.7rem;
-    color: var(--primary);
-    font-weight: bold;
-    transition: 0.3s;
-}
-
-.pattern-selector button:hover {
-    background: var(--secondary);
-    color: white;
-}
+        /* Patterns */
+        body.pattern-dots { background-image: radial-gradient(var(--secondary) 1px, transparent 1px); background-size: 20px 20px; }
+        body.pattern-gingham { background-image: linear-gradient(90deg, rgba(255,255,255,.5) 50%, transparent 50%), linear-gradient(rgba(255,255,255,.5) 50%, transparent 50%); background-size: 40px 40px; background-color: var(--secondary); }
+        body.pattern-hearts { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24"><path fill="%23FFBDC5" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>'); background-size: 40px 40px; }
     </style>
-<link rel="apple-touch-icon" href="icon.png">
 </head>
 <body>
 
 <div id="install-guide">
-    <b> <3 Install My TO-DO Planner</b>
+    <b>✨ Install My Planner</b>
     To use this as a full app: <br>
-    <small>Tap the share icon and then <b>'Add to Home Screen'</b></small>
-    <br>
+    <small>Tap share and <b>'Add to Home Screen'</b></small><br>
     <button class="close-guide" onclick="this.parentElement.style.display='none'">Got it!</button>
 </div>
 
@@ -312,6 +135,7 @@ body.pattern-hearts {
     <div class="theme-dot" style="background: #5e3a8a;" onclick="setTheme('lavender')"></div>
     <div class="theme-dot" style="background: #8a5a3a;" onclick="setTheme('espresso')"></div>
 </div>
+
 <div class="pattern-selector">
     <button onclick="setPattern('solid')">Solid</button>
     <button onclick="setPattern('dots')">Dots</button>
@@ -320,7 +144,6 @@ body.pattern-hearts {
 </div>
 
 <div class="planner-grid">
-    
     <div class="container" id="panel-daily">
         <header><div class="date-display date-box"></div><h1>everyday list<3</h1></header>
         <div class="input-group">
@@ -359,11 +182,9 @@ body.pattern-hearts {
         <ul class="completed-list"></ul>
         <div class="footer"><span class="items-left">0 items</span><span class="clear-link" onclick="clearCompleted('monthly')">Clear All</span></div>
     </div>
-
 </div>
 
 <script>
-    // --- Theme Data ---
     const themes = {
         velvet: { primary: '#670626', secondary: '#FFBDC5', bg: '#fffafb', text: '#330312' },
         forest: { primary: '#2b463c', secondary: '#a8c69f', bg: '#f4f7f4', text: '#1b2e26' },
@@ -372,29 +193,25 @@ body.pattern-hearts {
         espresso: { primary: '#5d4037', secondary: '#d7ccc8', bg: '#faf9f8', text: '#3e2723' }
     };
 
-    function setTheme(themeName) {
-        const t = themes[themeName];
-        document.documentElement.style.setProperty('--primary', t.primary);
-        document.documentElement.style.setProperty('--secondary', t.secondary);
-        document.documentElement.style.setProperty('--bg-color', t.bg);
-        document.documentElement.style.setProperty('--text-main', t.text);
-        localStorage.setItem('selected_theme', themeName);
-    }
+    let allData = JSON.parse(localStorage.getItem('velvet_planners')) || { monthly: [], weekly: [], daily: [] };
 
-    // --- Audio ---
+    // Audio Context
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
     function playKeyboardSound(e) {
         if (audioCtx.state === 'suspended') audioCtx.resume();
+        if (e.key === 'Enter') {
+            addTodo(e.target.closest('.container').id.replace('panel-', ''));
+            return;
+        }
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        const isSpace = e.code === 'Space';
-        osc.type = isSpace ? 'triangle' : 'square';
-        osc.frequency.setValueAtTime(isSpace ? 120 : 400 + Math.random()*100, audioCtx.currentTime);
-        gain.gain.setValueAtTime(isSpace ? 0.08 : 0.04, audioCtx.currentTime);
+        osc.type = e.code === 'Space' ? 'triangle' : 'square';
+        osc.frequency.setValueAtTime(e.code === 'Space' ? 120 : 400 + Math.random()*100, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
         osc.connect(gain); gain.connect(audioCtx.destination);
         osc.start(); osc.stop(audioCtx.currentTime + 0.05);
-        if (e.key === 'Enter') addTodo(e.target.closest('.container').id.replace('panel-', ''));
     }
 
     function playPopSound() {
@@ -404,13 +221,11 @@ body.pattern-hearts {
         osc.type = 'sine';
         osc.frequency.setValueAtTime(800, audioCtx.currentTime);
         osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
         osc.connect(gain); gain.connect(audioCtx.destination);
         osc.start(); osc.stop(audioCtx.currentTime + 0.3);
     }
-
-    // --- Core Logic ---
-    let allData = JSON.parse(localStorage.getItem('velvet_planners')) || { monthly: [], weekly: [], daily: [] };
 
     function updateDisplay(type) {
         const panel = document.getElementById(`panel-${type}`);
@@ -422,7 +237,13 @@ body.pattern-hearts {
         allData[type].forEach((todo, index) => {
             const li = document.createElement('li');
             if (todo.done) li.classList.add('completed');
-            li.innerHTML = `<div class="todo-content" onclick="toggleTodo(event, '${type}', ${index})"><div class="checkbox"></div><span class="todo-text">${todo.text}</span></div><button class="delete-btn" onclick="deleteTodo('${type}', ${index})">DELETE</button>`;
+            li.innerHTML = `
+                <div class="todo-content" onclick="toggleTodo(event, '${type}', ${index})">
+                    <div class="checkbox"></div>
+                    <span class="todo-text">${todo.text}</span>
+                </div>
+                <button class="delete-btn" onclick="deleteTodo('${type}', ${index})">DELETE</button>
+            `;
             if (todo.done) completedList.appendChild(li);
             else { activeList.appendChild(li); activeCount++; }
         });
@@ -438,157 +259,105 @@ body.pattern-hearts {
         }
     }
 
-   function toggleTodo(e, type, index) {
-    // Only play sound and show hearts if we are CHECKING the box (not unchecking)
-    if (!allData[type][index].done) { 
-        playPopSound(); // Restored to the loud version
-        createExplosionHearts(e); // Restored the pop-up explosion
+    function deleteTodo(type, index) {
+        allData[type].splice(index, 1);
+        updateDisplay(type);
     }
-    allData[type][index].done = !allData[type][index].done;
-    updateDisplay(type);
-}
 
-function playPopSound() {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    
-    osc.type = 'sine'; 
-    osc.frequency.setValueAtTime(800, audioCtx.currentTime); 
-    osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1); 
-    
-    // VOLUME BOOST: Set to 0.4 for a strong, clear chime
-    gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-    
-    osc.connect(gain); 
-    gain.connect(audioCtx.destination);
-    
-    osc.start(); 
-    osc.stop(audioCtx.currentTime + 0.3);
-}
-
-// This is the "Explosion" effect for the checkbox
-function createExplosionHearts(e) {
-    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
-    
-    // We create 8 hearts for a bigger burst
-    for (let i = 0; i < 8; i++) {
-        const h = document.createElement('div');
-        h.innerHTML = '❤';
-        h.className = 'floating-heart'; // Uses your original CSS animation
-        
-        // Start exactly where you clicked
-        h.style.left = e.clientX + 'px';
-        h.style.top = e.clientY + 'px';
-        h.style.color = primaryColor;
-        
-        // Random spread
-        const sway = (Math.random() - 0.5) * 120 + 'px';
-        h.style.setProperty('--sway-end', sway);
-        
-        // Fast, energetic burst animation
-        h.style.animation = `floatUp ${0.5 + Math.random() * 0.5}s ease-out forwards`;
-        
-        document.body.appendChild(h);
-        setTimeout(() => h.remove(), 1000);
+    function clearCompleted(type) {
+        allData[type] = allData[type].filter(todo => !todo.done);
+        updateDisplay(type);
     }
-}
 
-    // Initialize
+    function toggleTodo(e, type, index) {
+        if (!allData[type][index].done) { 
+            playPopSound();
+            createExplosionHearts(e);
+        }
+        allData[type][index].done = !allData[type][index].done;
+        updateDisplay(type);
+    }
+
+    function createExplosionHearts(e) {
+        const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+        for (let i = 0; i < 8; i++) {
+            const h = document.createElement('div');
+            h.innerHTML = '❤';
+            h.className = 'floating-heart';
+            h.style.left = e.clientX + 'px';
+            h.style.top = e.clientY + 'px';
+            h.style.color = primaryColor;
+            const sway = (Math.random() - 0.5) * 120 + 'px';
+            h.style.setProperty('--sway-end', sway);
+            h.style.animation = `floatUp ${0.5 + Math.random() * 0.5}s ease-out forwards`;
+            document.body.appendChild(h);
+            setTimeout(() => h.remove(), 1000);
+        }
+    }
+
+    function setTheme(themeName) {
+        const t = themes[themeName];
+        document.documentElement.style.setProperty('--primary', t.primary);
+        document.documentElement.style.setProperty('--secondary', t.secondary);
+        document.documentElement.style.setProperty('--bg-color', t.bg);
+        document.documentElement.style.setProperty('--text-main', t.text);
+        document.querySelectorAll('.bg-mini-heart').forEach(h => h.style.color = 'var(--secondary)');
+        localStorage.setItem('selected_theme', themeName);
+    }
+
+    function setPattern(p) {
+        document.body.classList.remove('pattern-dots', 'pattern-gingham', 'pattern-hearts');
+        const container = document.getElementById('bg-heart-container');
+        if (container) container.innerHTML = '';
+        if (p === 'hearts') generateRandomHearts();
+        else if (p !== 'solid') document.body.classList.add('pattern-' + p);
+        localStorage.setItem('selected_pattern', p);
+    }
+
+    function generateRandomHearts() {
+        let container = document.getElementById('bg-heart-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'bg-heart-container';
+            document.body.appendChild(container);
+        }
+        for (let i = 0; i < 40; i++) {
+            const heart = document.createElement('div');
+            heart.innerHTML = '❤';
+            heart.className = 'bg-mini-heart';
+            heart.style.fontSize = (Math.random() * 20 + 10) + 'px';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.top = Math.random() * 100 + 'vh';
+            heart.style.transform = `rotate(${Math.random() * 360}deg)`;
+            heart.style.color = 'var(--secondary)';
+            container.appendChild(heart);
+        }
+    }
+
+    // Init
     const savedTheme = localStorage.getItem('selected_theme') || 'velvet';
     setTheme(savedTheme);
+    const savedPattern = localStorage.getItem('selected_pattern') || 'solid';
+    setPattern(savedPattern);
+    
     const options = { weekday: 'long', month: 'long', day: 'numeric' };
     document.querySelectorAll('.date-box').forEach(el => el.innerText = new Date().toLocaleDateString(undefined, options));
     ['monthly', 'weekly', 'daily'].forEach(type => updateDisplay(type));
 
-function setPattern(p) {
-    document.body.classList.remove('pattern-dots', 'pattern-gingham', 'pattern-hearts');
-    
-    // Clear any existing random hearts first
-    const container = document.getElementById('bg-heart-container');
-    if (container) container.innerHTML = '';
-
-    if (p === 'hearts') {
-        generateRandomHearts();
-    } else if (p !== 'solid') {
-        document.body.classList.add('pattern-' + p);
-    }
-    
-    localStorage.setItem('pattern', p);
-}
-
-function generateRandomHearts() {
-    // Create container if it doesn't exist
-    let container = document.getElementById('bg-heart-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'bg-heart-container';
-        document.body.appendChild(container);
-    }
-
-    const heartCount = 40; // Adjust for more or fewer hearts
-    const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--secondary').trim();
-
-    for (let i = 0; i < heartCount; i++) {
-        const heart = document.createElement('div');
-        heart.innerHTML = '❤';
-        heart.className = 'bg-mini-heart';
-        
-        // Randomize Size (between 10px and 30px)
-        const size = Math.floor(Math.random() * 20) + 10;
-        heart.style.fontSize = size + 'px';
-        
-        // Randomize Position
-        heart.style.left = Math.random() * 100 + 'vw';
-        heart.style.top = Math.random() * 100 + 'vh';
-        
-        // Randomize Rotation for a funky look
-        heart.style.transform = `rotate(${Math.random() * 360}deg)`;
-        
-        // Set Color based on current theme
-        heart.style.color = 'var(--secondary)';
-        
-        container.appendChild(heart);
-    }
-}
-
-// Update the setTheme function so background hearts change color too
-function setTheme(name) {
-    const t = themes[name];
-    document.documentElement.style.setProperty('--primary', t.primary);
-    document.documentElement.style.setProperty('--secondary', t.secondary);
-    
-    if(!document.body.classList.contains('dark-mode')) {
-        document.documentElement.style.setProperty('--bg-color', t.bg);
-        document.documentElement.style.setProperty('--text-main', t.text);
-    }
-    
-    // This line ensures the background hearts update their color instantly
-    document.querySelectorAll('.bg-mini-heart').forEach(h => {
-        h.style.color = 'var(--secondary)';
+    window.addEventListener('DOMContentLoaded', () => {
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        if (!isStandalone) {
+            setTimeout(() => { document.getElementById('install-guide').style.display = 'block'; }, 2000);
+        }
     });
 
-    localStorage.setItem('theme', name);
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('Service Worker Registered!'))
+            .catch(err => console.log('Registration Failed:', err));
+    });
 }
-
-// Add this to your "Initialize" section at the bottom of the script
-const savedPattern = localStorage.getItem('selected_pattern') || 'solid';
-setPattern(savedPattern);
-window.addEventListener('DOMContentLoaded', () => {
-    // Check if the app is already running in "standalone" mode (installed)
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
-                         || window.navigator.standalone 
-                         || document.referrer.includes('android-app://');
-
-    if (!isStandalone) {
-        // Show the guide after 2 seconds so they see the hearts first
-        setTimeout(() => {
-            document.getElementById('install-guide').style.display = 'block';
-        }, 2000);
-    }
-});
 </script>
-
 </body>
 </html>
